@@ -115,3 +115,39 @@ VALGRIND=1 ./validate <platform> <plugin-package>
 
 The Camomile integration is under testing phase. Check the [PR notes](https://github.com/moddevices/mod-plugin-builder/pull/28) for more details. 
 
+## Aida DSP mods
+
+### Docker
+
+You can use docker to build the plugins. In order to setup the docker instance to do this,
+run the following commands on your host machine
+
+```
+cd docker
+./docker-mod-build.sh
+./docker-mod-start.sh <path>
+```
+where path is where you git cloned mod-plugin-builder.
+
+Following commands need to be launched in docker instance
+
+```
+./bootstrap.sh <platform> && ./.clean-install.sh <platform> # build the toolchain (ct-ng) and buildroot
+./build_all <platform> # build all the plugins except the ones in blacklist file
+mkdir -p pluginsdeploydir
+cp -r ~/mod-workdir/<platform>/plugins/* ./pluginsdeploydir # deploy in a place <path> accessible from
+                                                            # your host machine
+```
+you have a blacklist file where you can list the plugins you won't build for one reason or another, with the more
+common reason being the plugins in this list produce errors during the build.
+
+In case you want to check plugins deps against a target rootfs of your choice (with n°1 reason being you want
+to check you'll be able to run them on your target) you can run following command on your host machine
+(or on docker instance, depending where your target rootfs is located)
+
+```
+./check_deps_then_copy <platform> <inputdir> <outputdir> <targetrootfs>
+```
+
+and finally into <outputdir> you'll have the plugins that you can copy on your target
+

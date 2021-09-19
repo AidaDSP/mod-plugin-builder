@@ -2,10 +2,7 @@ FROM ubuntu:18.04
 LABEL maintainer="Alexandre Cunha <ale@moddevices.com>"
 ENV DEBIAN_FRONTEND noninteractive
 
-# platform argument must be provided, e.g. --build-arg platform=modduo
-ARG platform=modduo
-
-# enable i386, armhf and arm64
+# Enable i386, armhf and arm64
 RUN dpkg --add-architecture i386
 RUN dpkg --add-architecture armhf
 RUN dpkg --add-architecture arm64
@@ -18,12 +15,12 @@ RUN echo "deb [arch=amd64,i386] http://archive.ubuntu.com/ubuntu/ bionic main re
     echo "deb [arch=armhf,arm64] http://ports.ubuntu.com/ubuntu-ports bionic-updates main restricted universe multiverse"   >> /etc/apt/sources.list && \
     echo "deb [arch=armhf,arm64] http://ports.ubuntu.com/ubuntu-ports bionic-backports main restricted universe multiverse" >> /etc/apt/sources.list
 
-# update and upgrade system
+# Update and upgrade system
 RUN apt-get update && apt-get upgrade -qy && apt-get clean
 
 # NOTE multiarch-support:armhf is installed but not multiarch-support:arm64, everything still works though
 
-# install packages for buildroot
+# Install packages for buildroot
 RUN apt-get install -qy multiarch-support:armhf qemu-user-static && \
     apt-get install -qy libmxml1:armhf libfftw3-3:armhf liblo7:armhf libsndfile1:armhf zlib1g:armhf libstdc++6:armhf && \
     apt-get install -qy libmxml1:arm64 libfftw3-3:arm64 liblo7:arm64 libsndfile1:arm64 zlib1g:arm64 libstdc++6:arm64 && \
@@ -36,29 +33,47 @@ RUN wget http://archive.ubuntu.com/ubuntu/pool/universe/p/premake/premake_3.7-1_
     dpkg -i premake_3.7-1_amd64.deb && \
     rm premake_3.7-1_amd64.deb
 
-RUN locale-gen en_US.UTF-8
-RUN echo "source /etc/bash_completion" >> $HOME/.bashrc
+# Configuring a UTF8-capable locale.
+RUN locale-gen en_US.UTF-8 && update-locale LC_ALL=en_US.UTF-8 \
+    LANG=en_US.UTF-8
+ENV LANG en_US.UTF-8
+ENV LC_ALL en_US.UTF-8
 
-# user configurations
-ENV USER builder
-ENV HOME /home/$USER
+ENV USER_NAME mod
+ENV PROJECT mod
 
-# mod-plugin-builder settings
-ENV MPB_GIT_URL https://github.com/moddevices/mod-plugin-builder
+# Create a user with same uid and gid of the current host's user
+ARG host_uid=1001
+ARG host_gid=1001
+RUN groupadd -g $host_gid $USER_NAME && \
+    useradd -g $host_gid -m -s /bin/bash -u $host_uid $USER_NAME
 
-# create user
-RUN useradd -d $HOME -m -G sudo $USER
-# set user to sudoers (no password required)
-RUN echo "$USER ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/99-$USER && chmod 0440 /etc/sudoers.d/99-$USER
+ARG ssh_prv_key=""
+ARG ssh_pub_key=""
 
-# switch user
-USER $USER
+# Create .ssh path and set permissions, then authorize remote server
+RUN mkdir -p /home/$USER_NAME/.ssh && \
+    chmod 0700 /home/$USER_NAME/.ssh && \
+    ssh-keyscan github.com > /home/$USER_NAME/.ssh/known_hosts
 
-# checkout mod-build-system
-WORKDIR $HOME
-RUN git clone $MPB_GIT_URL
-WORKDIR mod-plugin-builder
-RUN ./bootstrap.sh $platform && ./.clean-install.sh $platform
+# Add the keys and set permissions
+RUN echo "$ssh_prv_key" > /home/$USER_NAME/.ssh/id_rsa && \
+    echo "$ssh_pub_key" > /home/$USER_NAME/.ssh/id_rsa.pub && \
+    chmod 600 /home/$USER_NAME/.ssh/id_rsa && \
+    chmod 600 /home/$USER_NAME/.ssh/id_rsa.pub && \
+    chown -R $USER_NAME:$USER_NAME /home/$USER_NAME/.ssh
 
-# CMD
-CMD ["bash"]
+ARG git_config=""
+
+# Add .gitconfig and set permissions
+RUN echo "$git_config" > /home/$USER_NAME/.gitconfig && \
+    chmod 664 /home/$USER_NAME/.gitconfig && \
+    chown $USER_NAME:$USER_NAME /home/$USER_NAME/.gitconfig
+
+# @TODO: check
+RUN echo "source /etc/bash_completion" >> /home/$USER_NAME/.bashrc
+
+# From this line below all commands run as user
+USER $USER_NAME
+
+RUN mkdir -p /home/$USER_NAME/build-mod
