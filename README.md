@@ -133,7 +133,7 @@ Following commands need to be launched in docker instance
 
 ```
 ./bootstrap.sh <platform> && ./.clean-install.sh <platform> # build the toolchain (ct-ng) and buildroot
-./build_all <platform> # build all the plugins except the ones in blacklist file
+./buildall <platform> # build all the plugins except the ones in blacklist file
 mkdir -p pluginsdeploydir
 cp -r ~/mod-workdir/<platform>/plugins/* ./pluginsdeploydir # deploy in a place <path> accessible from
                                                             # your host machine

@@ -40,7 +40,7 @@ INPUTDIR=$2
 OUTPUTDIR=$3
 TARGETROOTFS=$4
 
-if [[ "${PLATFORM}" == "" ]] || [[ ${INPUTDIR}" == "" ]] || [[ ${OUTPUTDIR}" == "" ]] || [[ ${TARGETROOTFS}" == "" ]]; then
+if [[ "${PLATFORM}" == "" ]] || [[ ${INPUTDIR}" == "" ]] || [[ "${OUTPUTDIR}" == "" ]] || [[ ${TARGETROOTFS}" == "" ]]; then
     echo "Usage: $0 <platform> <input> <outputdir> <targetrootfs>"
     echo "  Where platform can be modduo[-static], modduox[-static], moddwarf or x86_64"
     echo "  inputdir is a directory where there are compiled plugins"
