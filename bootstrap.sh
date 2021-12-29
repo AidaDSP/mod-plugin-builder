@@ -8,7 +8,7 @@ BUILDTARGET=${2}
 
 if [ -z "${PLATFORM}" ]; then
   echo "Usage: $0 <platform>"
-  echo "  Where platform can be modduo[-static], modduox[-static], moddwarf or x86_64"
+  echo "  Where platform can be modduo[-static], modduox[-static], aidadspos[-static], moddwarf or x86_64"
   exit 1
 fi
 
@@ -82,6 +82,8 @@ fi
 if [ "${PLATFORM}" == "modduo-static" ]; then
   sed -i -e 's/CT_TARGET_SYS="${CT_TARGET_SYS}hf"/CT_TARGET_SYS="${CT_TARGET_SYS}hf.static"/' scripts/build/arch/arm.sh
 elif [ "${PLATFORM}" == "modduox-static" ]; then
+  sed -i -e 's/CT_TARGET_SYS=gnu;/CT_TARGET_SYS=gnueabi.static;/' scripts/functions
+elif [ "${PLATFORM}" == "aidadspos-static" ]; then
   sed -i -e 's/CT_TARGET_SYS=gnu;/CT_TARGET_SYS=gnueabi.static;/' scripts/functions
 fi
 
