@@ -34,6 +34,22 @@ services:
           nocopy: true
       - download:/home/builder/mod-workdir/download
       - plugins_modduo_new:/home/builder/mod-workdir/modduo-new/plugins
+  moddwarf-new:
+    image: ${DOCKER_ORGANIZATION}/${DOCKER_IMG_PREFIX}moddwarf-new:latest
+    build:
+      context: .
+      args:
+        MPB_PLATFORM: moddwarf-new
+      platforms:
+        - "linux/amd64"
+    volumes:
+      - type: volume
+        source: mpb
+        target: /home/builder/mod-plugin-builder
+        volume:
+          nocopy: true
+      - download:/home/builder/mod-workdir/download
+      - plugins_moddwarf_new:/home/builder/mod-workdir/moddwarf-new/plugins
 volumes:
   mpb:
     driver: local
@@ -59,3 +75,9 @@ volumes:
       type: 'none'
       o: 'bind'
       device: '${PWD}/docker-workdir/modduo-new'
+  plugins_moddwarf_new:
+    driver: local
+    driver_opts:
+      type: 'none'
+      o: 'bind'
+      device: '${PWD}/docker-workdir/moddwarf-new'
