@@ -12,7 +12,7 @@ fi
 
 . ./.docker
 
-if ! docker image inspect ${DOCKER_IMG_PREFIX}$1 -f " " > /dev/null 2>&1; then
+if ! docker image inspect ${DOCKER_ORGANIZATION}/${DOCKER_IMG_PREFIX}$1 -f " " > /dev/null 2>&1; then
 	echo "Initializing platform $1..."
 	DOCKER_PLATFORMS="$1" ./docker-init
 	if [ $? -ne 0 ]; then
